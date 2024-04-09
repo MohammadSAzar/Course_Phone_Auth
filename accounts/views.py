@@ -7,6 +7,7 @@ from .models import CustomUserModel
 from .forms import RegistrationForm
 from .sender import send_otp, get_random_otp, otp_time_checker
 
+
 def registration_view(request):
 	form = RegistrationForm
 	if request.method == 'POST':
@@ -14,6 +15,9 @@ def registration_view(request):
 			if 'phone_number' in request.POST:
 				phone_number = request.POST.get('phone_number')
 				user = CustomUserModel.objects.get(phone_number=phone_number)
+				if user.otp_code is not None and otp_time_checker(user.phone_number):
+					request.session['user_phone_number'] = user.phone_number
+					return HttpResponseRedirect(reverse('verification'))
 				otp = get_random_otp()
 				send_otp(phone_number, otp)
 				user.otp_code = otp
@@ -58,4 +62,36 @@ def verification_view(request):
 
 def profile_view(request):
 	return render(request, 'accounts/profile.html')
+
+
+# The original code without bugs 1,2
+# def registration_view(request):
+# 	form = RegistrationForm
+# 	if request.method == 'POST':
+# 		try:
+# 			if 'phone_number' in request.POST:
+# 				phone_number = request.POST.get('phone_number')
+# 				user = CustomUserModel.objects.get(phone_number=phone_number)
+# 				otp = get_random_otp()
+# 				send_otp(phone_number, otp)
+# 				user.otp_code = otp
+# 				user.save()
+# 				request.session['user_phone_number'] = user.phone_number
+# 				return HttpResponseRedirect(reverse('verification'))
+# 		except CustomUserModel.DoesNotExist:
+# 			form = RegistrationForm(request.POST)
+# 			if form.is_valid():
+# 				user = form.save(commit=False)
+# 				otp = get_random_otp()
+# 				send_otp(phone_number, otp)
+# 				user.otp_code = otp
+# 				user.is_active = False
+# 				user.save()
+# 				request.session['user_phone_number'] = user.phone_number
+# 				return HttpResponseRedirect(reverse('verification'))
+# 	context = {
+# 		'form': form,
+# 	}
+# 	return render(request, 'accounts/registration.html', context)
+
 
