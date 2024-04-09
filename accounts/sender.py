@@ -1,11 +1,13 @@
 from kavenegar import *
 from random import randint
 import datetime
+import time
 
 from config.settings import kavenegar_API
 from .models import CustomUserModel
 
 def send_otp(phone_number, otp):
+	time.sleep(2)
 	phone_number = [phone_number, ]
 	try:
 		api = KavenegarAPI(kavenegar_API)
